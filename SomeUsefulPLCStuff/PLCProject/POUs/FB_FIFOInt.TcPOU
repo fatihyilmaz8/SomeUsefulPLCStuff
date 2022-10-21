@@ -1,0 +1,124 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.2">
+  <POU Name="FB_FIFOInt" Id="{638656dd-1a39-4e31-9d30-cce9bb230d11}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK FB_FIFOInt
+VAR_INPUT
+END_VAR
+VAR_OUTPUT
+	o_ItemCount		: INT;
+	o_EnqueueError	: BOOL;
+	o_DequeueError	: BOOL;
+END_VAR
+VAR CONSTANT
+	Size 			: INT := 3;
+END_VAR
+VAR
+	DeqOffset		: INT;
+	EnqOffset		: INT;
+	Items 			: ARRAY [0..Size-1] OF INT;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="Dequeue" Id="{9f6a5cda-f55c-425b-932b-4f98cd61e6bb}">
+      <Declaration><![CDATA[METHOD PUBLIC Dequeue : BOOL
+VAR_INPUT
+END_VAR
+VAR_OUTPUT
+	o_Item	: INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+IF o_ItemCount > 0 THEN
+	o_ItemCount 	:= o_ItemCount - 1;
+	
+	o_Item 			:= Items[DeqOffset];
+	DeqOffset 		:= DeqOffset + 1;
+	
+	IF DeqOffset = Size THEN
+		DeqOffset	:= 0;
+	END_IF
+	
+	//Reset Enqueue error after removing an item from the array if there was an error due to attempt of overfilling
+	IF o_EnqueueError THEN;
+		o_EnqueueError := FALSE;
+	END_IF
+ELSE
+	//Dequeue not possible if the item count is 0
+	o_DequeueError := TRUE;
+	o_Item			:= -1;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Enqueue" Id="{19a087c5-73a4-4f44-947c-af3316ca5335}">
+      <Declaration><![CDATA[METHOD PUBLIC Enqueue : BOOL
+VAR_INPUT
+	i_Item	: INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[
+IF o_ItemCount < Size THEN
+	o_ItemCount 		:= o_ItemCount + 1;
+	
+	Items[EnqOffset] 	:= i_Item;
+	EnqOffset 			:= EnqOffset + 1;
+	
+	IF EnqOffset = Size THEN
+		EnqOffset	:= 0;
+	END_IF
+	
+	//Reset Dequeue error after adding an item if there was an error due to having 0 items.
+	IF o_DequeueError THEN;
+		o_DequeueError := FALSE;
+	END_IF
+ELSE
+	//Enqueue not possible if the item count was already equal to the buffer array size
+	o_EnqueueError := TRUE;
+END_IF
+
+
+
+
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <LineIds Name="FB_FIFOInt">
+      <LineId Id="9" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FIFOInt.Dequeue">
+      <LineId Id="9" Count="10" />
+      <LineId Id="36" Count="0" />
+      <LineId Id="34" Count="1" />
+      <LineId Id="20" Count="1" />
+      <LineId Id="37" Count="0" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="28" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+    <LineIds Name="FB_FIFOInt.Enqueue">
+      <LineId Id="17" Count="0" />
+      <LineId Id="16" Count="0" />
+      <LineId Id="20" Count="0" />
+      <LineId Id="22" Count="0" />
+      <LineId Id="24" Count="0" />
+      <LineId Id="23" Count="0" />
+      <LineId Id="25" Count="0" />
+      <LineId Id="28" Count="1" />
+      <LineId Id="26" Count="0" />
+      <LineId Id="33" Count="0" />
+      <LineId Id="42" Count="0" />
+      <LineId Id="39" Count="2" />
+      <LineId Id="21" Count="0" />
+      <LineId Id="43" Count="0" />
+      <LineId Id="30" Count="0" />
+      <LineId Id="19" Count="0" />
+      <LineId Id="8" Count="1" />
+      <LineId Id="13" Count="1" />
+      <LineId Id="11" Count="0" />
+      <LineId Id="5" Count="0" />
+    </LineIds>
+  </POU>
+</TcPlcObject>
